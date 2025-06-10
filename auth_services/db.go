@@ -15,7 +15,7 @@ func InitializeDB() *gorm.DB {
 	}
 
 	// Auto migrate your models
-	if err := db.AutoMigrate(&User{}, &Book{}); err != nil {
+	if err := db.AutoMigrate(&User{}); err != nil {
 		log.Fatal("failed to migrate database: ", err)
 	}
 	return db

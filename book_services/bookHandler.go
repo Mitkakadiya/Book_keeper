@@ -76,7 +76,8 @@ func BookHandler(bookGroup fiber.Router, db *gorm.DB) {
 
 	bookGroup.Get("/", func(c *fiber.Ctx) error {
 		var books []Book
-		if err := db.Find(&books).Error; err != nil {
+		userId := int(c.Locals("userId").(float64))
+		if err := db.Where("user_id = ?", userId).Find(&books).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 					"error": "Book not found",
@@ -89,7 +90,7 @@ func BookHandler(bookGroup fiber.Router, db *gorm.DB) {
 		// var user []User
 		// db.Table("users").Select("users.username", "books.title", "books.year").Joins(
 		// 	"inner join books on books.user_id = users.id").Scan(&Result{})
-		var result []Result
+		// var result []Result
 
 		// inner join which return all record which match id
 		// db.Table("users").Select("users.username", "books.title", "books.year").Joins(
@@ -110,18 +111,18 @@ func BookHandler(bookGroup fiber.Router, db *gorm.DB) {
 		//cross join returns all recoed from both table where data not avilable than returns to null
 		// db.Table("users").Select("books.title", "books.year", "users.username").Joins(
 		// "full join books on  books.id = users.id").Scan(&result)
-		db.AutoMigrate(&User{})
+		// db.AutoMigrate(&User{})
 
-		db.Table("books").
-			Select("status, COUNT(*) AS total_books").
-			Group("status").
-			Scan(&result)
+		// db.Table("books").
+		// 	Select("status, COUNT(*) AS total_books").
+		// 	Group("status").
+		// 	Scan(&result)
 
-		fmt.Println(result)
+		// fmt.Println(result)
 		// fmt.Println(books)
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"status": fiber.StatusOK,
-			"books":  result,
+			"books":  books,
 		})
 	})
 
@@ -167,6 +168,12 @@ func BookHandler(bookGroup fiber.Router, db *gorm.DB) {
 			}
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"error": "Database error",
+			})
+		}
+
+		if dbBook.UserID != int(c.Locals("userId").(float64)) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "Book not found",
 			})
 		}
 
@@ -226,6 +233,12 @@ func BookHandler(bookGroup fiber.Router, db *gorm.DB) {
 		}
 		if book.Year != 0 {
 			dbBook.Year = book.Year
+		}
+
+		if dbBook.UserID != int(c.Locals("userId").(float64)) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "Book not found",
+			})
 		}
 
 		book.UserID = int(c.Locals("userId").(float64))

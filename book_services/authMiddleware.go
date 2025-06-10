@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,7 +24,7 @@ func AuthMiddleware(db *gorm.DB) fiber.Handler {
 
 			if authHeader == "" {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-					"status": fiber.StatusOK,
+					"status": fiber.StatusUnauthorized,
 					"error":  "Unauthorized",
 				})
 			}
@@ -33,7 +35,7 @@ func AuthMiddleware(db *gorm.DB) fiber.Handler {
 
 			if len(tokenParts) != 2 || tokenParts[0] != "barear" {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-					"status": fiber.StatusOK,
+					"status": fiber.StatusUnauthorized,
 					"error":  "Unauthorized",
 				})
 			}
@@ -55,19 +57,26 @@ func AuthMiddleware(db *gorm.DB) fiber.Handler {
 		if err != nil || !token.Valid {
 			c.ClearCookie()
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"status": fiber.StatusOK,
+				"status": fiber.StatusUnauthorized,
 				"error":  "Unauthorized",
 			})
 		}
 
 		userId := token.Claims.(jwt.MapClaims)["userId"]
-		if err := db.Model(User{}).Where("id = ?", userId).Error; err != nil {
+
+		Result, err := http.Get(fmt.Sprintf("http://127.0.0.1:3000/auth/users/%v", userId))
+		if err != nil {
 			c.ClearCookie()
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"status": fiber.StatusOK,
+				"status": fiber.StatusUnauthorized,
 				"error":  "Unauthorized",
 			})
 		}
+
+		var userData map[string]interface{}
+		json.NewDecoder(Result.Body).Decode(&userData)
+		fmt.Println(userData["id"], userData["username"])
+
 		fmt.Println(userId)
 		c.Locals("userId", userId)
 		return c.Next()

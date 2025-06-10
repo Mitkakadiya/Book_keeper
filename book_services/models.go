@@ -8,12 +8,6 @@ const (
 	ToRead  Status = "to_read"
 )
 
-type User struct {
-	ID       uint   `json:"id" gorm:"primaryKey"`
-	Username string `json:"username" gorm:"unique;not null"`
-	Password string `json:"-"`
-	Email    string `json:"email" gorm:"unique"` // new column
-}
 type Book struct {
 	ID     uint   `json:"id" gorm:"primaryKey"`
 	Title  string `json:"title" validate:"required" gorm:"index"`

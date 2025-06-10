@@ -15,6 +15,7 @@ func AuthHandlers(authGroup fiber.Router, db *gorm.DB) {
 		user := User{
 			Username: c.FormValue("username"),
 			Password: c.FormValue("password"),
+			Email:    c.FormValue("email"),
 		}
 
 		if user.Username == "" || user.Password == "" {
@@ -106,5 +107,18 @@ func AuthHandlers(authGroup fiber.Router, db *gorm.DB) {
 			"accessToken": accessToken,
 		})
 
+	})
+
+	authGroup.Get("/users/:id", func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		user := new(User)
+		if err := db.First(&user, id).Error; err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"status": fiber.StatusUnauthorized,
+				"error":  "User not found",
+			})
+		}
+
+		return c.JSON(user)
 	})
 }
