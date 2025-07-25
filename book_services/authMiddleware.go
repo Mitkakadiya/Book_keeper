@@ -31,9 +31,9 @@ func AuthMiddleware(db *gorm.DB) fiber.Handler {
 
 			// split header to get token
 
-			tokenParts := strings.Split(authHeader, "")
+			tokenParts := strings.Split(authHeader, " ")
 
-			if len(tokenParts) != 2 || tokenParts[0] != "barear" {
+			if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 					"status": fiber.StatusUnauthorized,
 					"error":  "Unauthorized",
