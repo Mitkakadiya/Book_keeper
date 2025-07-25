@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: auth_services
+    env: go
+    rootDir: auth_services
+    buildCommand: go build -o main .
+    startCommand: ./main
+    plan: free
+
+  - type: web
+    name: book_services
+    env: go
+    rootDir: book_services
+    buildCommand: go build -o main .
+    startCommand: ./main
+    plan: free
